@@ -5,9 +5,9 @@
       {
         "expect": [
           {
-            "method": "sendMessage",
+            "method": "editMessageText",
             "payload": {
-              "text": "Configure threshold and percent-move alerts for a selected coin"
+              "text": "No coins yet — add one before setting alerts."
             }
           }
         ],

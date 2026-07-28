@@ -5,9 +5,9 @@
       {
         "expect": [
           {
-            "method": "sendMessage",
+            "method": "editMessageText",
             "payload": {
-              "text": "Set time window for suppressing alerts"
+              "text": "Choose when alerts should pause. Times are UTC."
             }
           }
         ],

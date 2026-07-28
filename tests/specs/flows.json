@@ -1,0 +1,16 @@
+[
+  {
+    "name": "Custom ticker validation is helpful",
+    "steps": [
+      { "send": { "callback": "watchlist:custom" }, "expect": [{ "method": "sendMessage", "payload": { "text": "Send a ticker, such as SOL or XRP." } }] },
+      { "send": { "text": "NOPE" }, "expect": [{ "method": "sendMessage", "payload": { "text": "I couldn’t find that ticker. Try BTC, ETH, TON, SOL, XRP, or DOGE." } }] }
+    ]
+  },
+  {
+    "name": "Quiet hours save from buttons",
+    "steps": [
+      { "send": { "callback": "quiet:start:22:00" }, "expect": [{ "method": "editMessageText", "payload": { "text": "Choose when alerts should resume." } }] },
+      { "send": { "callback": "quiet:end:07:00" }, "expect": [{ "method": "editMessageText", "payload": { "text": "Quiet hours are set for 22:00–07:00 UTC." } }] }
+    ]
+  }
+]

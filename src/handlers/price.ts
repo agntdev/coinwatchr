@@ -1,15 +1,10 @@
 import { Composer } from "grammy";
-
-// SCAFFOLD — generated from the bot blueprint BEFORE the agent runs.
-// Keep a LIVE registration (.command / .callbackQuery / …) so this feature is
-// never an empty stub. Replace the reply body with real logic + copy; if you
-// change the user-facing text, update tests/specs to match EXACTLY.
-// Do NOT rewrite src/bot.ts — buildBot() already auto-loads this module.
-
-const composer = new Composer();
-
-composer.command("price", async (ctx) => {
-  await ctx.reply("Request current price for a specific ticker or the entire watchlist");
-});
-
+import type { Ctx } from "../bot.js";
+import { begin, formatMoney, inQuietHours, prices, state, triggered } from "../crypto.js";
+import { inlineButton, inlineKeyboard } from "../toolkit/index.js";
+const composer = new Composer<Ctx>();
+const menu = inlineKeyboard([[inlineButton("Check my watchlist", "price:all")], [inlineButton("Type a ticker", "price:custom")], [inlineButton("Back", "menu:main")]]);
+composer.command("price", async (ctx) => { await ctx.reply("Choose prices for your watchlist, or type a ticker.", { reply_markup: menu }); });
+composer.callbackQuery("price:custom", async (ctx) => { await ctx.answerCallbackQuery(); begin(ctx, { kind: "priceTicker" }); await ctx.reply("Send a ticker, such as BTC or ETH.", { reply_markup: { force_reply: true, input_field_placeholder: "BTC" } }); });
+composer.callbackQuery("price:all", async (ctx) => { await ctx.answerCallbackQuery(); const s = state(ctx); if (!s.watchlist!.length) { await ctx.editMessageText("No coins yet — add one before checking prices.", { reply_markup: inlineKeyboard([[inlineButton("Add a coin", "watchlist:add")]]) }); return; } await ctx.replyWithChatAction("typing"); const quotes = await prices(s.watchlist!); if (!quotes.size) { await ctx.editMessageText("I couldn’t reach the price feed. Try again in a moment.", { reply_markup: menu }); return; } const lines: string[] = []; const alerts: string[] = []; for (const item of s.watchlist!) { const quote = quotes.get(item.ticker); if (!quote) continue; lines.push(`${item.ticker} ${formatMoney(quote.price)} (${quote.change >= 0 ? "+" : ""}${quote.change.toFixed(2)}% 24h)`); const rules = triggered(ctx, item, quote); if (rules.length) alerts.push(`${item.ticker} crossed ${rules.map((r) => r.type === "threshold" ? formatMoney(r.value) : `${r.value}%`).join(" and ")}`); } await ctx.editMessageText(`Current prices\n\n${lines.join("\n")}`, { reply_markup: menu }); for (const alert of alerts) { if (s.profile && !inQuietHours(s.profile)) await ctx.reply(`Price alert: ${alert}.`); else s.watchlist!.find((item) => alert.startsWith(item.ticker))!.queued = true; } });
 export default composer;

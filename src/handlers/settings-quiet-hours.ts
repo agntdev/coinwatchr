@@ -1,17 +1,12 @@
 import { Composer } from "grammy";
-
-// SCAFFOLD — generated from the bot blueprint BEFORE the agent runs.
-// Keep a LIVE registration (.command / .callbackQuery / …) so this feature is
-// never an empty stub. Replace the reply body with real logic + copy; if you
-// change the user-facing text, update tests/specs to match EXACTLY.
-// Do NOT rewrite src/bot.ts — buildBot() already auto-loads this module.
-// Menu: wire this into /start via registerMainMenuItem({ label: "Configure quiet hours", data: "settings:quiet_hours" }) if the toolkit exposes it.
-
-const composer = new Composer();
-
-composer.callbackQuery("settings:quiet_hours", async (ctx) => {
-  await ctx.answerCallbackQuery();
-  await ctx.reply("Set time window for suppressing alerts");
-});
-
+import type { Ctx } from "../bot.js";
+import { begin, state } from "../crypto.js";
+import { inlineButton, inlineKeyboard, registerMainMenuItem } from "../toolkit/index.js";
+registerMainMenuItem({ label: "Set quiet hours", data: "settings:quiet_hours", order: 40 });
+const composer = new Composer<Ctx>();
+composer.callbackQuery("settings:quiet_hours", async (ctx) => { await ctx.answerCallbackQuery(); const p = state(ctx).profile!; await ctx.editMessageText(p.quietStart ? `Quiet hours are ${p.quietStart}–${p.quietEnd} UTC. Choose a new start time.` : "Choose when alerts should pause. Times are UTC.", { reply_markup: inlineKeyboard([[inlineButton("21:00", "quiet:start:21:00"), inlineButton("22:00", "quiet:start:22:00")], [inlineButton("Type a time", "quiet:custom")], [inlineButton("Back", "menu:main")]]) }); });
+composer.callbackQuery(/^quiet:start:(\d\d:\d\d)$/, async (ctx) => { await ctx.answerCallbackQuery(); begin(ctx, { kind: "quietEnd", ticker: ctx.match[1] }); await ctx.editMessageText("Choose when alerts should resume.", { reply_markup: inlineKeyboard([[inlineButton("07:00", "quiet:end:07:00"), inlineButton("08:00", "quiet:end:08:00")], [inlineButton("Type a time", "quiet:endCustom")]]) }); });
+composer.callbackQuery(/^quiet:end:(\d\d:\d\d)$/, async (ctx) => { await ctx.answerCallbackQuery(); const p = state(ctx).profile!; const start = state(ctx).flow?.ticker; if (!start) { await ctx.editMessageText("Choose a start time first."); return; } p.quietStart = start; p.quietEnd = ctx.match[1]; state(ctx).flow = undefined; await ctx.editMessageText(`Quiet hours are set for ${start}–${p.quietEnd} UTC.`); });
+composer.callbackQuery("quiet:custom", async (ctx) => { await ctx.answerCallbackQuery(); begin(ctx, { kind: "quietStart" }); await ctx.reply("Send the quiet-hours start time, like 22:00.", { reply_markup: { force_reply: true, input_field_placeholder: "22:00" } }); });
+composer.callbackQuery("quiet:endCustom", async (ctx) => { await ctx.answerCallbackQuery(); const start = state(ctx).flow?.ticker; if (!start) { await ctx.reply("Choose a start time first."); return; } begin(ctx, { kind: "quietEnd", ticker: start }); await ctx.reply("Send the time alerts should resume, like 07:00.", { reply_markup: { force_reply: true, input_field_placeholder: "07:00" } }); });
 export default composer;

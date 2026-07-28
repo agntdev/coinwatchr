@@ -5,9 +5,9 @@
       {
         "expect": [
           {
-            "method": "sendMessage",
+            "method": "editMessageText",
             "payload": {
-              "text": "Add a new coin to the user's watchlist"
+              "text": "Choose a coin, or type its ticker."
             }
           }
         ],
@@ -15,6 +15,12 @@
           "callback": "watchlist:add"
         }
       }
+    ]
+  },
+  {
+    "name": "Add a pre-seeded coin",
+    "steps": [
+      { "send": { "callback": "watchlist:coin:BTC" }, "expect": [{ "method": "editMessageText", "payload": { "text": "Bitcoin is on your watchlist. Set an alert when you’re ready." } }] }
     ]
   }
 ]

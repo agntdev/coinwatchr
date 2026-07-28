@@ -5,9 +5,9 @@
       {
         "expect": [
           {
-            "method": "sendMessage",
+            "method": "editMessageText",
             "payload": {
-              "text": "Display the user's current watchlist items"
+              "text": "No coins yet — tap Add a coin to start your watchlist."
             }
           }
         ],

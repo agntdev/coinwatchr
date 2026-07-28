@@ -5,9 +5,9 @@
       {
         "expect": [
           {
-            "method": "sendMessage",
+            "method": "editMessageText",
             "payload": {
-              "text": "Schedule daily price summary at chosen local time"
+              "text": "Choose when to receive your daily summary. Times are UTC."
             }
           }
         ],
