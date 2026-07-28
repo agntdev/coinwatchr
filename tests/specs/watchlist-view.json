@@ -1,0 +1,20 @@
+[
+  {
+    "name": "View watchlist",
+    "steps": [
+      {
+        "expect": [
+          {
+            "method": "sendMessage",
+            "payload": {
+              "text": "Display the user's current watchlist items"
+            }
+          }
+        ],
+        "send": {
+          "callback": "watchlist:view"
+        }
+      }
+    ]
+  }
+]
