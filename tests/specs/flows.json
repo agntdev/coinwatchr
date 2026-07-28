@@ -1,5 +1,21 @@
 [
   {
+    "name": "/cancel leaves a typed setup",
+    "steps": [
+      {
+        "send": { "text": "/cancel" },
+        "expect": [
+          {
+            "method": "sendMessage",
+            "payload": {
+              "text": "That setup is cancelled. Tap /start when you’re ready."
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
     "name": "Custom ticker validation is helpful",
     "steps": [
       { "send": { "callback": "watchlist:custom" }, "expect": [{ "method": "sendMessage", "payload": { "text": "Send a ticker, such as SOL or XRP." } }] },
