@@ -1,17 +1,10 @@
 import { Composer } from "grammy";
-
-// SCAFFOLD — generated from the bot blueprint BEFORE the agent runs.
-// Keep a LIVE registration (.command / .callbackQuery / …) so this feature is
-// never an empty stub. Replace the reply body with real logic + copy; if you
-// change the user-facing text, update tests/specs to match EXACTLY.
-// Do NOT rewrite src/bot.ts — buildBot() already auto-loads this module.
-// Menu: wire this into /start via registerMainMenuItem({ label: "Enable morning summary", data: "settings:morning_summary" }) if the toolkit exposes it.
-
-const composer = new Composer();
-
-composer.callbackQuery("settings:morning_summary", async (ctx) => {
-  await ctx.answerCallbackQuery();
-  await ctx.reply("Schedule daily price summary at chosen local time");
-});
-
+import type { Ctx } from "../bot.js";
+import { begin, state } from "../crypto.js";
+import { inlineButton, inlineKeyboard, registerMainMenuItem } from "../toolkit/index.js";
+registerMainMenuItem({ label: "Set morning summary", data: "settings:morning_summary", order: 50 });
+const composer = new Composer<Ctx>();
+composer.callbackQuery("settings:morning_summary", async (ctx) => { await ctx.answerCallbackQuery(); const current = state(ctx).profile!.morningSummary; await ctx.editMessageText(current ? `Your daily summary is set for ${current} UTC. Choose a new time.` : "Choose when to receive your daily summary. Times are UTC.", { reply_markup: inlineKeyboard([[inlineButton("07:00", "summary:time:07:00"), inlineButton("08:00", "summary:time:08:00")], [inlineButton("Type a time", "summary:custom")], [inlineButton("Back", "menu:main")]]) }); });
+composer.callbackQuery(/^summary:time:(\d\d:\d\d)$/, async (ctx) => { await ctx.answerCallbackQuery(); state(ctx).profile!.morningSummary = ctx.match[1]; await ctx.editMessageText(`Your daily summary is set for ${ctx.match[1]} UTC.`); });
+composer.callbackQuery("summary:custom", async (ctx) => { await ctx.answerCallbackQuery(); begin(ctx, { kind: "summaryTime" }); await ctx.reply("Send your summary time, like 08:00.", { reply_markup: { force_reply: true, input_field_placeholder: "08:00" } }); });
 export default composer;

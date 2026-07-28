@@ -7,7 +7,7 @@
           {
             "method": "sendMessage",
             "payload": {
-              "text": "Request current price for a specific ticker or the entire watchlist"
+              "text": "Choose prices for your watchlist, or type a ticker."
             }
           }
         ],
